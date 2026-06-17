@@ -1,0 +1,1 @@
+export const brandcolor='#aecb5a'
