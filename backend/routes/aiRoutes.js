@@ -1,10 +1,14 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
-import Product from '../models/productModel.js';
+import {
+  inStockProducts,
+  productsByCategory,
+  productsUnderPrice,
+  searchProducts,
+  topRatedProducts,
+} from '../services/aiProductService.js';
 
 const router = express.Router();
-
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const formatProducts = (products) => {
   if (!products.length) {
@@ -17,6 +21,12 @@ const formatProducts = (products) => {
 
   return `Here are some products I found:\n${productLines.join('\n')}`;
 };
+
+const sendProductResponse = (res, products) =>
+  res.json({
+    reply: formatProducts(products),
+    products,
+  });
 
 const cleanSearchTerm = (value) =>
   value
@@ -50,48 +60,38 @@ router.post(
 
     if (priceMatch) {
       const maxPrice = Number(priceMatch[1]);
-      products = await Product.find({ price: { $lte: maxPrice } })
-        .select('name price')
-        .sort({ price: 1 })
-        .limit(10);
+      products = await productsUnderPrice(maxPrice);
 
-      return res.json({ reply: formatProducts(products) });
+      return sendProductResponse(res, products);
     }
 
     const categoryMatch = lowerMessage.match(/\bcategory\s+([a-z0-9\s-]+)/i);
 
     if (categoryMatch) {
       const category = cleanSearchTerm(categoryMatch[1]);
-      products = await Product.find({
-        category: { $regex: escapeRegex(category), $options: 'i' },
-      })
-        .select('name price')
-        .sort({ name: 1 })
-        .limit(10);
+      products = await productsByCategory(category);
 
-      return res.json({ reply: formatProducts(products) });
+      return sendProductResponse(res, products);
     }
 
     if (/\b(in stock|available|availability)\b/i.test(message)) {
-      products = await Product.find({ countInStock: { $gt: 0 } })
-        .select('name price')
-        .sort({ name: 1 })
-        .limit(10);
+      products = await inStockProducts();
 
-      return res.json({ reply: formatProducts(products) });
+      return sendProductResponse(res, products);
+    }
+
+    if (/\b(top rated|best rated|highest rated)\b/i.test(message)) {
+      products = await topRatedProducts();
+
+      return sendProductResponse(res, products);
     }
 
     const searchTerm = getNameSearchTerm(message);
 
     if (searchTerm) {
-      products = await Product.find({
-        name: { $regex: escapeRegex(searchTerm), $options: 'i' },
-      })
-        .select('name price')
-        .sort({ name: 1 })
-        .limit(10);
+      products = await searchProducts(searchTerm);
 
-      return res.json({ reply: formatProducts(products) });
+      return sendProductResponse(res, products);
     }
 
     return res.json({
