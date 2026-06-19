@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
+import aiRoutes from './routes/aiRoutes.js'
 import {notFound,errorHandler} from './middleware/ErrorMiddleware.js'
 
 dotenv.config()
@@ -27,6 +28,7 @@ app.use('/api/users',userRoutes)
 app.use('/api/orders',orderRoutes)
 app.use('/api/payment',paymentRoutes)
 app.use('/api/upload',uploadRoutes)
+app.use('/api/ai',aiRoutes)
 
 const __dirname=path.resolve()
 app.use('/uploads',express.static(path.join(__dirname,'/uploads')))

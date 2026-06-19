@@ -17,6 +17,7 @@ import ProductListScreen from "./screens/ProductListScreen";
 import ProductEditScreen from "./screens/ProductEditScreen";
 import ProductUploadScreen from "./screens/ProductUploadScreen";
 import AllOrders from "./screens/AllOrders";
+import AIChatWidget from "./components/AIChatWidget";
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
         <Route path='/admin/orderlist' element={<AllOrders/>}/>
     </Routes>
     <Footer/>
+    <AIChatWidget/>
     </BrowserRouter>
     </>
 
